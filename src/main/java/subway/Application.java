@@ -128,7 +128,7 @@ public class Application {
             minDistance(startStation, endStation);
             return;
         }
-        //minTime(startStation, endStation);
+        minTime(startStation, endStation);
     }
 
     public static void setGraphVertex(WeightedMultigraph<String, DefaultWeightedEdge> graph) {
@@ -143,6 +143,15 @@ public class Application {
                     graph.addEdge(sectionInfo.getFirstStation().getName(),
                             sectionInfo.getSecondStation().getName()),
                     sectionInfo.getKm());
+        }
+    }
+
+    public static void setGraphEdgeWithMinutes(WeightedMultigraph<String, DefaultWeightedEdge> graph) {
+        for(SectionInfo sectionInfo : sectionInfoRepository.sectionInfos()){
+            graph.setEdgeWeight(
+                    graph.addEdge(sectionInfo.getFirstStation().getName(),
+                            sectionInfo.getSecondStation().getName()),
+                    sectionInfo.getMinutes());
         }
     }
 
@@ -172,7 +181,18 @@ public class Application {
         System.out.println();
     }
 
+    public static void minTime(String startStation, String endStation){
+        WeightedMultigraph<String, DefaultWeightedEdge> graph
+                = new WeightedMultigraph(DefaultWeightedEdge.class);
+        setGraphVertex(graph);
+        setGraphEdgeWithMinutes(graph);
 
+        DijkstraShortestPath dijkstraShortestPath = new DijkstraShortestPath(graph);
 
+        Integer bestMinute = (int) dijkstraShortestPath.getPathWeight(startStation, endStation);
+        List<String> shortestPath = dijkstraShortestPath.getPath(startStation, endStation).getVertexList();
+
+        printResult(0, bestMinute, shortestPath);
+    }
 
 }
