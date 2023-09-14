@@ -165,8 +165,52 @@ public class Application {
 
         Integer bestKm = (int) dijkstraShortestPath.getPathWeight(startStation, endStation);
         List<String> shortestPath = dijkstraShortestPath.getPath(startStation, endStation).getVertexList();
+        Integer totalMinute = searchTotalMinuteWhenFindingBestKm(shortestPath);
 
-        printResult(bestKm, 0, shortestPath);
+        printResult(bestKm, totalMinute, shortestPath);
+    }
+
+    public static void minTime(String startStation, String endStation){
+        WeightedMultigraph<String, DefaultWeightedEdge> graph
+                = new WeightedMultigraph(DefaultWeightedEdge.class);
+        setGraphVertex(graph);
+        setGraphEdgeWithMinutes(graph);
+
+        DijkstraShortestPath dijkstraShortestPath = new DijkstraShortestPath(graph);
+
+        Integer bestMinute = (int) dijkstraShortestPath.getPathWeight(startStation, endStation);
+        List<String> shortestPath = dijkstraShortestPath.getPath(startStation, endStation)
+                .getVertexList();
+        Integer totalKm = searchTotalKmWhenFindingBestMinute(shortestPath);
+
+        printResult(totalKm, bestMinute, shortestPath);
+    }
+
+    public static Integer searchTotalKmWhenFindingBestMinute(List<String> shortestPath){
+        Integer totalKm = 0;
+        for(int i = 0; i < shortestPath.size() -1; i++){
+            Station firstStation = stationRepository.findStation(shortestPath.get(i)).orElseThrow();//예외처리 필요
+            Station secondStation = stationRepository.findStation(shortestPath.get(i + 1)).orElseThrow();
+
+            SectionInfo sectionInfo = SectionInfoRepository
+                    .findSectionInfoByFirstStationAndSecondStation(firstStation, secondStation)
+                    .orElseThrow();//예외처리 필요
+            totalKm += sectionInfo.getKm();
+        }
+        return totalKm;
+    }
+
+    public static Integer searchTotalMinuteWhenFindingBestKm(List<String> shortestPath){
+        Integer totalMinute = 0;
+        for(int i = 0; i < shortestPath.size() -1; i++){
+            Station firstStation = stationRepository.findStation(shortestPath.get(i)).orElseThrow();//예외처리 필요
+            Station secondStation = stationRepository.findStation(shortestPath.get(i + 1)).orElseThrow();
+
+            SectionInfo sectionInfo = SectionInfoRepository.findSectionInfoByFirstStationAndSecondStation(firstStation, secondStation)
+                    .orElseThrow();//예외처리 필요
+            totalMinute += sectionInfo.getMinutes();
+        }
+        return totalMinute;
     }
 
     public static void printResult(Integer km, Integer minute, List<String> shortestPath){
@@ -179,20 +223,6 @@ public class Application {
         shortestPath.stream().forEach(
                 path -> System.out.println("[INFO] " + path));
         System.out.println();
-    }
-
-    public static void minTime(String startStation, String endStation){
-        WeightedMultigraph<String, DefaultWeightedEdge> graph
-                = new WeightedMultigraph(DefaultWeightedEdge.class);
-        setGraphVertex(graph);
-        setGraphEdgeWithMinutes(graph);
-
-        DijkstraShortestPath dijkstraShortestPath = new DijkstraShortestPath(graph);
-
-        Integer bestMinute = (int) dijkstraShortestPath.getPathWeight(startStation, endStation);
-        List<String> shortestPath = dijkstraShortestPath.getPath(startStation, endStation).getVertexList();
-
-        printResult(0, bestMinute, shortestPath);
     }
 
 }
