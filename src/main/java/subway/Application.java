@@ -1,5 +1,6 @@
 package subway;
 
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.WeightedMultigraph;
 import subway.domain.*;
@@ -21,8 +22,8 @@ public class Application {
             initStation();
             initSectionInfo();
 
-            System.out.println("## 메인 화면\n1." +
-                    "1. 경로 조회\n " +
+            System.out.println("## 메인 화면\n" +
+                    "1. 경로 조회\n" +
                     "Q. 종료\n");
 
             System.out.println("## 원하는 기능을 선택하세요.");
@@ -40,6 +41,7 @@ public class Application {
             String startStation = getStartStation(scanner);
             String endStation = getEndStation(scanner);
 
+            searchResult(creteria, startStation, endStation);
         }
     }
 
@@ -58,7 +60,7 @@ public class Application {
     }
 
     public static String chooseCreteria(Scanner scanner){
-        System.out.println("## 경로 기준\n" +
+        System.out.println("\n## 경로 기준\n" +
                 "1. 최단 거리\n" +
                 "2. 최소 시간\n" +
                 "B. 돌아가기\n");
@@ -68,12 +70,12 @@ public class Application {
     }
 
     public static String getStartStation(Scanner scanner){
-        System.out.println("## 출발역을 입력하세요.");
+        System.out.println("\n## 출발역을 입력하세요.");
         return scanner.next();
     }
 
     public static String getEndStation(Scanner scanner){
-        System.out.println("## 도착역을 입력하세요.");
+        System.out.println("\n## 도착역을 입력하세요.");
         return scanner.next();
     }
 
@@ -117,4 +119,60 @@ public class Application {
                 new SectionInfo(lines.get(2), stations.get(4), stations.get(5), 10, 3));
     }
 
- }
+    public static void searchResult(String creteria, String startStation, String endStation){
+        callMethodAccordingToCreteria(creteria, startStation, endStation);
+
+    }
+    public static void callMethodAccordingToCreteria(String creteria, String startStation, String endStation){
+        if(creteria.equals("1")){
+            minDistance(startStation, endStation);
+            return;
+        }
+        //minTime(startStation, endStation);
+    }
+
+    public static void setGraphVertex(WeightedMultigraph<String, DefaultWeightedEdge> graph) {
+        for(Station station : stationRepository.stations()){
+            graph.addVertex(station.getName());
+        }
+    }
+
+    public static void setGraphEdgeWithKm(WeightedMultigraph<String, DefaultWeightedEdge> graph) {
+        for(SectionInfo sectionInfo : sectionInfoRepository.sectionInfos()){
+            graph.setEdgeWeight(
+                    graph.addEdge(sectionInfo.getFirstStation().getName(),
+                            sectionInfo.getSecondStation().getName()),
+                    sectionInfo.getKm());
+        }
+    }
+
+    public static void minDistance(String startStation, String endStation){
+        WeightedMultigraph<String, DefaultWeightedEdge> graph
+                = new WeightedMultigraph(DefaultWeightedEdge.class);
+        setGraphVertex(graph);
+        setGraphEdgeWithKm(graph);
+
+        DijkstraShortestPath dijkstraShortestPath = new DijkstraShortestPath(graph);
+
+        Integer bestKm = (int) dijkstraShortestPath.getPathWeight(startStation, endStation);
+        List<String> shortestPath = dijkstraShortestPath.getPath(startStation, endStation).getVertexList();
+
+        printResult(bestKm, 0, shortestPath);
+    }
+
+    public static void printResult(Integer km, Integer minute, List<String> shortestPath){
+        System.out.println("\n## 조회 결과");
+        System.out.println("[INFO] ---");
+        System.out.println("[INFO] 총 거리: " + km + "km");
+        System.out.println("[INFO] 총 소요 시간: " + minute + "분");
+        System.out.println("[INFO] ---");
+
+        shortestPath.stream().forEach(
+                path -> System.out.println("[INFO] " + path));
+        System.out.println();
+    }
+
+
+
+
+}
