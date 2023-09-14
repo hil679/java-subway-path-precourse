@@ -19,6 +19,7 @@ public class Application {
         while(!isQuit) {
             initLine();
             initStation();
+            initSectionInfo();
 
             System.out.println("## 메인 화면\n1." +
                     "1. 경로 조회\n " +
@@ -39,7 +40,6 @@ public class Application {
             String startStation = getStartStation(scanner);
             String endStation = getEndStation(scanner);
 
-            
         }
     }
 
@@ -117,6 +117,4 @@ public class Application {
                 new SectionInfo(lines.get(2), stations.get(4), stations.get(5), 10, 3));
     }
 
-
-
-}
+ }
